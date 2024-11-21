@@ -13,7 +13,8 @@ class EmployeeList extends StatefulWidget {
 }
 
 class _EmployeeListState extends State<EmployeeList> {
-  List<Employee> previousEmployee=[],currentEmployee=[];
+  List<Employee> previousEmployee=[],currentEmployee=[],tempHold=[];
+  bool undo=false;
   Widget listEmployee(List<Employee> employList,String type){
     return Column(
       mainAxisAlignment:MainAxisAlignment.start,
@@ -27,8 +28,24 @@ class _EmployeeListState extends State<EmployeeList> {
           return Dismissible(
             key:Key(item.id.toString()),
             onDismissed:(direction){
-              context.read<EmployeesCubit>().deleteEmployee(item.id);
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Employee ${item.name} is deleted')));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Row(
+                mainAxisAlignment:MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Employee ${item.name} is deleted'),
+                  TextButton(onPressed:(){
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    context.read<EmployeesCubit>().deleteEmployee(item.id);
+                    setState(() {
+                      undo = true;
+                      tempHold.add(item);
+                    });
+                  },child:Text("Undo",style:TextStyle(color:AppColors.primaryColor),))
+                ],
+              ))).closed.then((_){
+                if(undo)context.read<EmployeesCubit>().createEmployee(tempHold.last);
+                print(tempHold);
+                tempHold.clear();
+              });
             },
             background:Container(
               alignment:Alignment.centerRight,
@@ -102,7 +119,7 @@ class _EmployeeListState extends State<EmployeeList> {
             ),
           ],
         ):
-        Image.asset("assets/noEmployee.png",alignment:Alignment.center);
+        Center(child: Image.asset("assets/noEmployee.png",alignment:Alignment.center));
       }),
       floatingActionButton: FloatingActionButton(
         backgroundColor:AppColors.buttonColor,

@@ -238,19 +238,26 @@ class _AddEditEmployeeState extends State<AddEditEmployee> {
               width: 10,
             ),
             Reusable().button("Save",AppColors.primaryColor, () {
-              if(name.text.toString().trim().length==0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text("Enter employee name"),
-                ));
-              } else if (role.toString().trim().length==0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text("Select role"),
-                ));
-              }else if (startDay.toString().trim().length==0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text("Select Start date"),
-                ));
-              } else {
+              String error="";
+              if(name.text.trim().length==0) error="Enter employee name";
+              else if (role.trim().length==0) error="Select role";
+              else if (startDay.trim().length==0) error="Select Start date";
+              else{
+                if(endDay!=""){
+                  DateFormat df=DateFormat("dd MMM yy");
+                  DateTime sd=df.parse(startDay);
+                  DateTime ed=df.parse(endDay);
+                  if(sd.isAfter(ed)){
+                    error="Start Date cannot be greater then end date";
+                  }else if(ed.isAtSameMomentAs(sd)){
+                    error="Start Date cannot be equal to end date";
+                  }
+                }
+              }
+                if(error!=""){
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error),));
+                  return;
+                }
                 Employee emp1 = new Employee(name: name.text,
                     role: role,
                     startDate: startDay,
@@ -258,10 +265,8 @@ class _AddEditEmployeeState extends State<AddEditEmployee> {
                 if (widget.isEdit) {
                   emp1.id = widget.id;
                   context.read<EmployeesCubit>().editEmployee(emp1);
-                } else
-                  context.read<EmployeesCubit>().createEmployee(emp1);
+                } else context.read<EmployeesCubit>().createEmployee(emp1);
                 Navigator.pop(context);
-              }
             }),
           ],
         ),

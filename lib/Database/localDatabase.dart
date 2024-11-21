@@ -29,7 +29,7 @@ class LocalDatabase{
     if(output!=null){
       var dd=jsonDecode(output);
       data=dd;
-      id=int.parse(data[data.length-1]['id'])+1;
+      id=data.length==0?1:int.parse(data[data.length-1]['id'])+1;
     }else{
       id=1;
     }
